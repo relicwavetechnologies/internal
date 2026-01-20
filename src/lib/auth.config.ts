@@ -24,7 +24,7 @@ export const authConfig = {
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
+        token.id = user.id || ""
         token.companyId = (user as any).companyId
       }
       return token

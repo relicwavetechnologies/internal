@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm } from "react-hook-form"
+import { useForm, Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { expenditureSchema, ExpenditureData } from "@/lib/schemas"
 import { createExpenditure } from "@/actions/expenditures"
@@ -53,7 +53,7 @@ export function ExpenditureForm({ accounts, tags, onSuccess }: ExpenditureFormPr
   const [openTags, setOpenTags] = useState(false)
 
   const form = useForm<ExpenditureData>({
-    resolver: zodResolver(expenditureSchema),
+    resolver: zodResolver(expenditureSchema) as unknown as Resolver<ExpenditureData>,
     defaultValues: {
       description: "",
       amount: 0,
@@ -73,7 +73,7 @@ export function ExpenditureForm({ accounts, tags, onSuccess }: ExpenditureFormPr
         if (onSuccess) onSuccess()
       }
     } catch (error) {
-      toast.error("Something went wrong")
+      // toast.error("Something went wrong")
     } finally {
       setIsPending(false)
     }

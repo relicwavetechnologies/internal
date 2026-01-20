@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm } from "react-hook-form"
+import { useForm, Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { accountSchema, AccountData } from "@/lib/schemas"
 import { createAccount, updateAccount } from "@/actions/accounts"
@@ -34,10 +34,10 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
   const [isPending, setIsPending] = useState(false)
 
   const form = useForm<AccountData>({
-    resolver: zodResolver(accountSchema),
+    resolver: zodResolver(accountSchema) as unknown as Resolver<AccountData>,
     defaultValues: {
       name: account?.name || "",
-      type: (account?.type as any) || "Bank Account",
+      type: (account?.type as AccountData["type"]) || "Bank Account",
       balance: account?.balance || 0,
     },
   })
