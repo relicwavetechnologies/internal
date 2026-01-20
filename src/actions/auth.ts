@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs"
 import { AuthError } from "next-auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { Prisma } from "@prisma/client"
 
 export async function login(data: LoginData) {
   const validatedFields = loginSchema.safeParse(data)
@@ -57,7 +58,7 @@ export async function signup(data: SignupData) {
   const hashedPassword = await bcrypt.hash(password, 10)
 
   try {
-    await db.$transaction(async (tx: any) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       // Create company
       const company = await tx.company.create({
         data: {

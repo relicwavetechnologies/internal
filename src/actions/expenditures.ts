@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { expenditureSchema, ExpenditureData } from "@/lib/schemas"
 import { revalidatePath } from "next/cache"
+import { Prisma } from "@prisma/client"
 
 export async function createExpenditure(data: ExpenditureData) {
   const session = await auth()
@@ -19,7 +20,7 @@ export async function createExpenditure(data: ExpenditureData) {
   const { amount, description, date, accountId, tagIds } = validatedFields.data
 
   try {
-    await db.$transaction(async (tx: any) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       // Create expenditure
       const expenditure = await tx.expenditure.create({
         data: {
@@ -71,7 +72,7 @@ export async function deleteExpenditure(id: string) {
       return { error: "Expenditure not found" }
     }
 
-    await db.$transaction(async (tx: any) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       // Delete expenditure (tags cascade)
       await tx.expenditure.delete({
         where: { id },

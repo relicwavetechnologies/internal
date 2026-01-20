@@ -25,14 +25,14 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id || ""
-        token.companyId = (user as any).companyId
+        token.companyId = user.companyId || ""
       }
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string
-        (session.user as any).companyId = token.companyId as string
+        session.user.id = token.id
+        session.user.companyId = token.companyId
       }
       return session
     },
