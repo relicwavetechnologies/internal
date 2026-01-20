@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Company {
+  id           String        @id @default(cuid())
+  name         String
+  users        User[]
+  accounts     Account[]
+  tags         Tag[]
+  expenditures Expenditure[]
+  createdAt    DateTime      @default(now())
+}
+
+model Account {
+  id           String        @id @default(cuid())
+  name         String
+  type         String // Bank Account, Cash, Bitcoin Wallet, Other
+  balance      Float         @default(0)
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id])
+  expenditures Expenditure[]
+  createdAt    DateTime      @default(now())
+}
+
+model Tag {
+  id           String           @id @default(cuid())
+  name         String
+  companyId    String
+  company      Company          @relation(fields: [companyId], references: [id])
+  expenditures ExpenditureTag[]
+  createdAt    DateTime         @default(now())
+}
+
+model Expenditure {
+  id          String           @id @default(cuid())
+  amount      Float
+  description String
+  date        DateTime
+  accountId   String
+  account     Account          @relation(fields: [accountId], references: [id])
+  companyId   String
+  company     Company          @relation(fields: [companyId], references: [id])
+  tags        ExpenditureTag[]
+  createdAt   DateTime         @default(now())
+}
+
+model ExpenditureTag {
+  expenditureId String
+  expenditure   Expenditure @relation(fields: [expenditureId], references: [id])
+  tagId         String
+  tag           Tag         @relation(fields: [tagId], references: [id])
+
+  @@id([expenditureId, tagId])
+}
