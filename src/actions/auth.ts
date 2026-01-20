@@ -7,7 +7,6 @@ import bcrypt from "bcryptjs"
 import { AuthError } from "next-auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { PrismaClient } from "@prisma/client"
 
 export async function login(data: LoginData) {
   const validatedFields = loginSchema.safeParse(data)

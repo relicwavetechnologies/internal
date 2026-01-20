@@ -13,7 +13,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
-import { PrismaClient } from "@prisma/client"
 
 // Define a type that includes the relations we are fetching
 // We use 'any' here because Prisma generated types can be tricky to import directly
