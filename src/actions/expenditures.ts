@@ -16,7 +16,7 @@ export async function createExpenditure(data: ExpenditureData) {
     return { error: "Invalid fields" }
   }
 
-  const { amount, description, date, accountId, tagIds } = validatedFields.data
+  const { amount, description, date, accountId, tagIds, employeeId, categoryId } = validatedFields.data
 
   try {
     await db.$transaction(async (tx: any) => {
@@ -28,6 +28,8 @@ export async function createExpenditure(data: ExpenditureData) {
           date,
           accountId,
           companyId: session.user.companyId,
+          employeeId: employeeId || null,
+          categoryId: categoryId || null,
           tags: {
             create: tagIds?.map((tagId) => ({
               tag: { connect: { id: tagId } },
@@ -48,6 +50,7 @@ export async function createExpenditure(data: ExpenditureData) {
     })
     revalidatePath("/expenditures")
     revalidatePath("/accounts")
+    revalidatePath("/employees")
     revalidatePath("/")
     return { success: true }
   } catch (error) {
@@ -90,6 +93,7 @@ export async function deleteExpenditure(id: string) {
 
     revalidatePath("/expenditures")
     revalidatePath("/accounts")
+    revalidatePath("/employees")
     revalidatePath("/")
     return { success: true }
   } catch (error) {

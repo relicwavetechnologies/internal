@@ -16,9 +16,10 @@ import { Plus } from "lucide-react"
 interface IncomeDialogProps {
   accounts: any[]
   tags: any[]
+  categories?: any[]
 }
 
-export function IncomeDialog({ accounts, tags }: IncomeDialogProps) {
+export function IncomeDialog({ accounts, tags, categories = [] }: IncomeDialogProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -29,14 +30,19 @@ export function IncomeDialog({ accounts, tags }: IncomeDialogProps) {
           Log Income
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Log Income</DialogTitle>
           <DialogDescription>
             Record a new income source and add to account balance.
           </DialogDescription>
         </DialogHeader>
-        <IncomeForm accounts={accounts} tags={tags} onSuccess={() => setOpen(false)} />
+        <IncomeForm
+          accounts={accounts}
+          tags={tags}
+          categories={categories}
+          onSuccess={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   )

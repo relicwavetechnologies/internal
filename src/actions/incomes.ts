@@ -16,7 +16,7 @@ export async function createIncome(data: IncomeData) {
     return { error: "Invalid fields" }
   }
 
-  const { amount, description, date, accountId, tagIds } = validatedFields.data
+  const { amount, description, date, accountId, tagIds, categoryId } = validatedFields.data
 
   try {
     await db.$transaction(async (tx: any) => {
@@ -28,6 +28,7 @@ export async function createIncome(data: IncomeData) {
           date,
           accountId,
           companyId: session.user.companyId,
+          categoryId: categoryId || null,
           tags: {
             create: tagIds?.map((tagId) => ({
               tag: { connect: { id: tagId } },

@@ -16,9 +16,11 @@ import { Plus } from "lucide-react"
 interface ExpenditureDialogProps {
   accounts: any[]
   tags: any[]
+  employees?: any[]
+  categories?: any[]
 }
 
-export function ExpenditureDialog({ accounts, tags }: ExpenditureDialogProps) {
+export function ExpenditureDialog({ accounts, tags, employees = [], categories = [] }: ExpenditureDialogProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -29,14 +31,20 @@ export function ExpenditureDialog({ accounts, tags }: ExpenditureDialogProps) {
           Log Expense
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Log Expenditure</DialogTitle>
           <DialogDescription>
             Record a new expense and deduct from account balance.
           </DialogDescription>
         </DialogHeader>
-        <ExpenditureForm accounts={accounts} tags={tags} onSuccess={() => setOpen(false)} />
+        <ExpenditureForm
+          accounts={accounts}
+          tags={tags}
+          employees={employees}
+          categories={categories}
+          onSuccess={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   )

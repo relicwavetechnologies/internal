@@ -29,7 +29,7 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarIcon, Check } from "lucide-react"
+import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
 import {
@@ -44,12 +44,14 @@ import {
 interface IncomeFormProps {
   accounts: any[]
   tags: any[]
+  categories?: any[]
   onSuccess?: () => void
 }
 
-export function IncomeForm({ accounts, tags, onSuccess }: IncomeFormProps) {
+export function IncomeForm({ accounts, tags, categories = [], onSuccess }: IncomeFormProps) {
   const [isPending, setIsPending] = useState(false)
   const [openTags, setOpenTags] = useState(false)
+  const [openCategory, setOpenCategory] = useState(false)
 
   const form = useForm<IncomeData>({
     resolver: zodResolver(incomeSchema) as unknown as Resolver<IncomeData>,
@@ -57,6 +59,7 @@ export function IncomeForm({ accounts, tags, onSuccess }: IncomeFormProps) {
       description: "",
       amount: 0,
       tagIds: [],
+      categoryId: undefined,
     },
   })
 
@@ -178,6 +181,87 @@ export function IncomeForm({ accounts, tags, onSuccess }: IncomeFormProps) {
             </FormItem>
           )}
         />
+
+        {categories.length > 0 && (
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Category</FormLabel>
+                <Popover open={openCategory} onOpenChange={setOpenCategory}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value
+                          ? categories.find((c: any) => c.id === field.value)?.name
+                          : "Select category (optional)"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search categories..." />
+                      <CommandList>
+                        <CommandEmpty>No category found.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value=""
+                            onSelect={() => {
+                              field.onChange(undefined)
+                              setOpenCategory(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                !field.value ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <span className="text-muted-foreground">None</span>
+                          </CommandItem>
+                          {categories.map((category: any) => (
+                            <CommandItem
+                              key={category.id}
+                              value={category.name}
+                              onSelect={() => {
+                                field.onChange(category.id)
+                                setOpenCategory(false)
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === category.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {category.color && (
+                                <span
+                                  className="mr-2 h-3 w-3 rounded-full"
+                                  style={{ backgroundColor: category.color }}
+                                />
+                              )}
+                              {category.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

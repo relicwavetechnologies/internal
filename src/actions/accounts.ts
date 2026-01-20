@@ -87,3 +87,21 @@ export async function deleteAccount(id: string) {
     return { error: "Failed to delete account" }
   }
 }
+
+export async function getAccounts() {
+  const session = await auth()
+  if (!session?.user?.companyId) {
+    throw new Error("Unauthorized")
+  }
+
+  const accounts = await db.account.findMany({
+    where: {
+      companyId: session.user.companyId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  })
+
+  return accounts
+}

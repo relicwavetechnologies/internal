@@ -17,26 +17,123 @@ model User {
 }
 
 model Company {
-  id           String        @id @default(cuid())
-  name         String
-  users        User[]
-  accounts     Account[]
-  tags         Tag[]
-  expenditures Expenditure[]
-  incomes      Income[]
-  createdAt    DateTime      @default(now())
+  id                    String                 @id @default(cuid())
+  name                  String
+  users                 User[]
+  accounts              Account[]
+  tags                  Tag[]
+  expenditures          Expenditure[]
+  incomes               Income[]
+  employees             Employee[]
+  categories            Category[]
+  recurringTransactions RecurringTransaction[]
+  createdAt             DateTime               @default(now())
+}
+
+// Employee/Payee Management
+enum EmployeeType {
+  EMPLOYEE
+  CONTRACTOR
+  VENDOR
+  FREELANCER
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  TERMINATED
+}
+
+model Employee {
+  id                    String                 @id @default(cuid())
+  name                  String
+  email                 String?
+  phone                 String?
+  role                  String?
+  department            String?
+  salary                Float?
+  employeeType          EmployeeType           @default(EMPLOYEE)
+  status                EmployeeStatus         @default(ACTIVE)
+  hireDate              DateTime?
+  notes                 String?
+  companyId             String
+  company               Company                @relation(fields: [companyId], references: [id])
+  expenditures          Expenditure[]
+  recurringTransactions RecurringTransaction[]
+  createdAt             DateTime               @default(now())
+}
+
+// Category System
+enum CategoryType {
+  EXPENSE
+  INCOME
+  BOTH
+}
+
+model Category {
+  id                    String                 @id @default(cuid())
+  name                  String
+  icon                  String?
+  color                 String?
+  type                  CategoryType           @default(EXPENSE)
+  isSystem              Boolean                @default(false)
+  companyId             String?
+  company               Company?               @relation(fields: [companyId], references: [id])
+  expenditures          Expenditure[]
+  incomes               Income[]
+  recurringTransactions RecurringTransaction[]
+  createdAt             DateTime               @default(now())
+}
+
+// Recurring Transactions
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model RecurringTransaction {
+  id          String             @id @default(cuid())
+  name        String
+  amount      Float
+  description String?
+  type        TransactionType
+  frequency   RecurringFrequency
+  startDate   DateTime
+  nextRun     DateTime
+  endDate     DateTime?
+  isActive    Boolean            @default(true)
+  accountId   String
+  account     Account            @relation(fields: [accountId], references: [id])
+  employeeId  String?
+  employee    Employee?          @relation(fields: [employeeId], references: [id])
+  categoryId  String?
+  category    Category?          @relation(fields: [categoryId], references: [id])
+  companyId   String
+  company     Company            @relation(fields: [companyId], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 }
 
 model Account {
-  id           String        @id @default(cuid())
-  name         String
-  type         String // Bank Account, Cash, Bitcoin Wallet, Other
-  balance      Float         @default(0)
-  companyId    String
-  company      Company       @relation(fields: [companyId], references: [id])
-  expenditures Expenditure[]
-  incomes      Income[]
-  createdAt    DateTime      @default(now())
+  id                    String                 @id @default(cuid())
+  name                  String
+  type                  String // Bank Account, Cash, Bitcoin Wallet, Other
+  balance               Float                  @default(0)
+  companyId             String
+  company               Company                @relation(fields: [companyId], references: [id])
+  expenditures          Expenditure[]
+  incomes               Income[]
+  recurringTransactions RecurringTransaction[]
+  createdAt             DateTime               @default(now())
 }
 
 model Tag {
@@ -58,6 +155,10 @@ model Expenditure {
   account     Account          @relation(fields: [accountId], references: [id])
   companyId   String
   company     Company          @relation(fields: [companyId], references: [id])
+  employeeId  String?
+  employee    Employee?        @relation(fields: [employeeId], references: [id])
+  categoryId  String?
+  category    Category?        @relation(fields: [categoryId], references: [id])
   tags        ExpenditureTag[]
   createdAt   DateTime         @default(now())
 }
@@ -80,6 +181,8 @@ model Income {
   account     Account     @relation(fields: [accountId], references: [id])
   companyId   String
   company     Company     @relation(fields: [companyId], references: [id])
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id])
   tags        IncomeTag[]
   createdAt   DateTime    @default(now())
 }

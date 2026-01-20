@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { LayoutDashboard, Wallet, Receipt, Tags, LogOut, TrendingUp, ListFilter } from "lucide-react"
+import { LayoutDashboard, Wallet, Receipt, Tags, LogOut, TrendingUp, ListFilter, Users, FolderTree, BarChart3, Repeat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/lib/auth"
 
@@ -24,7 +24,7 @@ export default async function DashboardLayout({
           <p className="text-sm text-muted-foreground mt-1">{session.user?.name}</p>
           <p className="text-xs text-muted-foreground">{session.user?.email}</p>
         </div>
-        
+
         <nav className="flex-1 space-y-2">
           <Link href="/" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <LayoutDashboard size={20} />
@@ -33,6 +33,10 @@ export default async function DashboardLayout({
           <Link href="/accounts" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Wallet size={20} />
             <span>Accounts</span>
+          </Link>
+          <Link href="/employees" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
+            <Users size={20} />
+            <span>Employees</span>
           </Link>
           <Link href="/expenditures" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Receipt size={20} />
@@ -46,9 +50,21 @@ export default async function DashboardLayout({
             <ListFilter size={20} />
             <span>Transactions</span>
           </Link>
+          <Link href="/categories" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
+            <FolderTree size={20} />
+            <span>Categories</span>
+          </Link>
           <Link href="/tags" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Tags size={20} />
             <span>Tags</span>
+          </Link>
+          <Link href="/recurring-transactions" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
+            <Repeat size={20} />
+            <span>Recurring</span>
+          </Link>
+          <Link href="/reports" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
+            <BarChart3 size={20} />
+            <span>Reports</span>
           </Link>
         </nav>
 
@@ -66,7 +82,7 @@ export default async function DashboardLayout({
           </form>
         </div>
       </aside>
-      
+
       <main className="flex-1 bg-background p-8 overflow-y-auto">
         {children}
       </main>

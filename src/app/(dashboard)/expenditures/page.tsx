@@ -21,14 +21,16 @@ type ExpenditureWithRelations = any;
 
 export default async function ExpendituresPage() {
   const session = await auth()
-  
-  const [expenditures, accounts, tags] = await Promise.all([
+
+  const [expenditures, accounts, tags, employees, categories] = await Promise.all([
     db.expenditure.findMany({
       where: {
         companyId: session?.user?.companyId,
       },
       include: {
         account: true,
+        employee: true,
+        category: true,
         tags: {
           include: {
             tag: true,
@@ -45,13 +47,32 @@ export default async function ExpendituresPage() {
     db.tag.findMany({
       where: { companyId: session?.user?.companyId },
     }),
+    db.employee.findMany({
+      where: { companyId: session?.user?.companyId, status: "ACTIVE" },
+      orderBy: { name: "asc" },
+    }),
+    db.category.findMany({
+      where: {
+        OR: [
+          { companyId: session?.user?.companyId },
+          { companyId: null, isSystem: true },
+        ],
+        type: { in: ["EXPENSE", "BOTH"] },
+      },
+      orderBy: { name: "asc" },
+    }),
   ])
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Expenditures</h1>
-        <ExpenditureDialog accounts={accounts} tags={tags} />
+        <ExpenditureDialog
+          accounts={accounts}
+          tags={tags}
+          employees={employees}
+          categories={categories}
+        />
       </div>
 
       <Card>
@@ -64,8 +85,9 @@ export default async function ExpendituresPage() {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Employee</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Account</TableHead>
-                <TableHead>Tags</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -73,7 +95,7 @@ export default async function ExpendituresPage() {
             <TableBody>
               {expenditures.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={7} className="text-center">
                     No expenditures logged.
                   </TableCell>
                 </TableRow>
@@ -82,16 +104,31 @@ export default async function ExpendituresPage() {
                   <TableRow key={exp.id}>
                     <TableCell>{format(exp.date, "PPP")}</TableCell>
                     <TableCell className="font-medium">{exp.description}</TableCell>
-                    <TableCell>{exp.account.name}</TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {exp.tags.map(({ tag }: any) => (
-                          <Badge key={tag.id} variant="secondary">
-                            {tag.name}
-                          </Badge>
-                        ))}
-                      </div>
+                      {exp.employee ? (
+                        <span className="text-sm">{exp.employee.name}</span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
+                    <TableCell>
+                      {exp.category ? (
+                        <Badge
+                          variant="secondary"
+                          style={{
+                            backgroundColor: exp.category.color ? `${exp.category.color}20` : undefined,
+                            color: exp.category.color || undefined,
+                            borderColor: exp.category.color || undefined,
+                          }}
+                          className="border"
+                        >
+                          {exp.category.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{exp.account.name}</TableCell>
                     <TableCell className="font-bold text-red-500">
                       -${exp.amount.toFixed(2)}
                     </TableCell>

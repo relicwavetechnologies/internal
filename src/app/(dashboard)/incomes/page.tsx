@@ -22,13 +22,14 @@ type IncomeWithRelations = any;
 export default async function IncomesPage() {
   const session = await auth()
 
-  const [incomes, accounts, tags] = await Promise.all([
+  const [incomes, accounts, tags, categories] = await Promise.all([
     db.income.findMany({
       where: {
         companyId: session?.user?.companyId,
       },
       include: {
         account: true,
+        category: true,
         tags: {
           include: {
             tag: true,
@@ -45,13 +46,23 @@ export default async function IncomesPage() {
     db.tag.findMany({
       where: { companyId: session?.user?.companyId },
     }),
+    db.category.findMany({
+      where: {
+        OR: [
+          { companyId: session?.user?.companyId },
+          { companyId: null, isSystem: true },
+        ],
+        type: { in: ["INCOME", "BOTH"] },
+      },
+      orderBy: { name: "asc" },
+    }),
   ])
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Income</h1>
-        <IncomeDialog accounts={accounts} tags={tags} />
+        <IncomeDialog accounts={accounts} tags={tags} categories={categories} />
       </div>
 
       <Card>
@@ -64,8 +75,8 @@ export default async function IncomesPage() {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Account</TableHead>
-                <TableHead>Tags</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -82,16 +93,24 @@ export default async function IncomesPage() {
                   <TableRow key={income.id}>
                     <TableCell>{format(income.date, "PPP")}</TableCell>
                     <TableCell className="font-medium">{income.description}</TableCell>
-                    <TableCell>{income.account.name}</TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {income.tags.map(({ tag }: any) => (
-                          <Badge key={tag.id} variant="secondary">
-                            {tag.name}
-                          </Badge>
-                        ))}
-                      </div>
+                      {income.category ? (
+                        <Badge
+                          variant="secondary"
+                          style={{
+                            backgroundColor: income.category.color ? `${income.category.color}20` : undefined,
+                            color: income.category.color || undefined,
+                            borderColor: income.category.color || undefined,
+                          }}
+                          className="border"
+                        >
+                          {income.category.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
+                    <TableCell>{income.account.name}</TableCell>
                     <TableCell className="font-bold text-green-500">
                       +${income.amount.toFixed(2)}
                     </TableCell>
