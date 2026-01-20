@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { LayoutDashboard, Wallet, Receipt, Tags, LogOut } from "lucide-react"
+import { LayoutDashboard, Wallet, Receipt, Tags, LogOut, TrendingUp, ListFilter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/lib/auth"
 
@@ -37,6 +37,14 @@ export default async function DashboardLayout({
           <Link href="/expenditures" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Receipt size={20} />
             <span>Expenditures</span>
+          </Link>
+          <Link href="/incomes" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
+            <TrendingUp size={20} />
+            <span>Income</span>
+          </Link>
+          <Link href="/transactions" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
+            <ListFilter size={20} />
+            <span>Transactions</span>
           </Link>
           <Link href="/tags" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Tags size={20} />

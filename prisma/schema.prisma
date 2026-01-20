@@ -23,6 +23,7 @@ model Company {
   accounts     Account[]
   tags         Tag[]
   expenditures Expenditure[]
+  incomes      Income[]
   createdAt    DateTime      @default(now())
 }
 
@@ -34,6 +35,7 @@ model Account {
   companyId    String
   company      Company       @relation(fields: [companyId], references: [id])
   expenditures Expenditure[]
+  incomes      Income[]
   createdAt    DateTime      @default(now())
 }
 
@@ -43,6 +45,7 @@ model Tag {
   companyId    String
   company      Company          @relation(fields: [companyId], references: [id])
   expenditures ExpenditureTag[]
+  incomes      IncomeTag[]
   createdAt    DateTime         @default(now())
 }
 
@@ -66,4 +69,26 @@ model ExpenditureTag {
   tag           Tag         @relation(fields: [tagId], references: [id])
 
   @@id([expenditureId, tagId])
+}
+
+model Income {
+  id          String      @id @default(cuid())
+  amount      Float
+  description String
+  date        DateTime
+  accountId   String
+  account     Account     @relation(fields: [accountId], references: [id])
+  companyId   String
+  company     Company     @relation(fields: [companyId], references: [id])
+  tags        IncomeTag[]
+  createdAt   DateTime    @default(now())
+}
+
+model IncomeTag {
+  incomeId String
+  income   Income @relation(fields: [incomeId], references: [id], onDelete: Cascade)
+  tagId    String
+  tag      Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([incomeId, tagId])
 }

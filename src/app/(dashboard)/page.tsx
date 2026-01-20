@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { OverviewChart } from "@/components/dashboard/overview-chart"
-import { RecentExpenditures } from "@/components/dashboard/recent-expenditures"
+import { RecentTransactions } from "@/components/dashboard/recent-transactions"
 import { startOfMonth } from "date-fns"
 
 export default async function DashboardPage() {
@@ -12,14 +12,23 @@ export default async function DashboardPage() {
   if (!companyId) return null
 
   // Fetch data
-  const [accounts, expenditures, recentExpenditures] = await Promise.all([
+  const [accounts, expenditures, incomes, recentExpenditures, recentIncomes] = await Promise.all([
     db.account.findMany({
       where: { companyId },
     }),
     db.expenditure.findMany({
       where: { companyId },
     }),
+    db.income.findMany({
+      where: { companyId },
+    }),
     db.expenditure.findMany({
+      where: { companyId },
+      orderBy: { date: "desc" },
+      take: 5,
+      include: { account: true },
+    }),
+    db.income.findMany({
       where: { companyId },
       orderBy: { date: "desc" },
       take: 5,
@@ -29,11 +38,17 @@ export default async function DashboardPage() {
 
   // Calculate stats
   const totalBalance = accounts.reduce((acc: number, curr: any) => acc + curr.balance, 0)
-  
+
   const currentMonthStart = startOfMonth(new Date())
   const monthlySpending = expenditures
     .filter((exp: any) => exp.date >= currentMonthStart)
     .reduce((acc: number, curr: any) => acc + curr.amount, 0)
+
+  const monthlyIncome = incomes
+    .filter((inc: any) => inc.date >= currentMonthStart)
+    .reduce((acc: number, curr: any) => acc + curr.amount, 0)
+
+  const monthlyNetFlow = monthlyIncome - monthlySpending
 
   // Chart Data: Spending by Account
   // Actually, expenditures don't have account name directly, but accounts do.
@@ -48,11 +63,23 @@ export default async function DashboardPage() {
     }
   })
 
+  // Combine recent transactions
+  const recentTransactions = [
+    ...recentExpenditures.map((exp: any) => ({
+      ...exp,
+      type: "EXPENSE" as const,
+    })),
+    ...recentIncomes.map((inc: any) => ({
+      ...inc,
+      type: "INCOME" as const,
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5)
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Dashboard</h1>
       
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
@@ -66,10 +93,10 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Spending</CardTitle>
+            <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${monthlySpending.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-500">+${monthlyIncome.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
               For {currentMonthStart.toLocaleString('default', { month: 'long' })}
             </p>
@@ -77,10 +104,26 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Accounts</CardTitle>
+            <CardTitle className="text-sm font-medium">Monthly Spending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{accounts.length}</div>
+            <div className="text-2xl font-bold text-red-500">-${monthlySpending.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              For {currentMonthStart.toLocaleString('default', { month: 'long' })}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Net Flow</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${monthlyNetFlow >= 0 ? "text-green-500" : "text-red-500"}`}>
+              {monthlyNetFlow >= 0 ? "+" : ""}${monthlyNetFlow.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              For {currentMonthStart.toLocaleString('default', { month: 'long' })}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -99,7 +142,7 @@ export default async function DashboardPage() {
             <CardTitle>Recent Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <RecentExpenditures data={recentExpenditures} />
+            <RecentTransactions data={recentTransactions} />
           </CardContent>
         </Card>
       </div>
