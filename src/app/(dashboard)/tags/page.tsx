@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { Tag } from "@prisma/client"
 import { TagDialog } from "@/components/tags/tag-dialog"
 import { TagActions } from "@/components/tags/tag-actions"
 import {
@@ -50,7 +51,7 @@ export default async function TagsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                tags.map((tag) => (
+                tags.map((tag: Tag) => (
                   <TableRow key={tag.id}>
                     <TableCell className="font-medium">{tag.name}</TableCell>
                     <TableCell>

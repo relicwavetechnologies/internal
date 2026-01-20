@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { Account } from "@prisma/client"
 import { AccountDialog } from "@/components/accounts/account-dialog"
 import { AccountActions } from "@/components/accounts/account-actions"
 import {
@@ -52,7 +53,7 @@ export default async function AccountsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                accounts.map((account) => (
+                accounts.map((account: Account) => (
                   <TableRow key={account.id}>
                     <TableCell className="font-medium">{account.name}</TableCell>
                     <TableCell>{account.type}</TableCell>

@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { Account, Expenditure } from "@prisma/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { OverviewChart } from "@/components/dashboard/overview-chart"
 import { RecentExpenditures } from "@/components/dashboard/recent-expenditures"
@@ -28,20 +29,20 @@ export default async function DashboardPage() {
   ])
 
   // Calculate stats
-  const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0)
+  const totalBalance = accounts.reduce((acc: number, curr: Account) => acc + curr.balance, 0)
   
   const currentMonthStart = startOfMonth(new Date())
   const monthlySpending = expenditures
-    .filter((exp) => exp.date >= currentMonthStart)
-    .reduce((acc, curr) => acc + curr.amount, 0)
+    .filter((exp: Expenditure) => exp.date >= currentMonthStart)
+    .reduce((acc: number, curr: Expenditure) => acc + curr.amount, 0)
 
   // Chart Data: Spending by Account
   // Actually, expenditures don't have account name directly, but accounts do.
   // We can sum expenditures by accountId.
-  const spendingByAccount = accounts.map((acc) => {
+  const spendingByAccount = accounts.map((acc: Account) => {
     const total = expenditures
-      .filter((exp) => exp.accountId === acc.id)
-      .reduce((sum, exp) => sum + exp.amount, 0)
+      .filter((exp: Expenditure) => exp.accountId === acc.id)
+      .reduce((sum: number, exp: Expenditure) => sum + exp.amount, 0)
     return {
       name: acc.name,
       total,

@@ -73,14 +73,14 @@ export default async function ExpendituresPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                expenditures.map((exp) => (
+                expenditures.map((exp: any) => (
                   <TableRow key={exp.id}>
                     <TableCell>{format(exp.date, "PPP")}</TableCell>
                     <TableCell className="font-medium">{exp.description}</TableCell>
                     <TableCell>{exp.account.name}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {exp.tags.map(({ tag }) => (
+                        {exp.tags.map(({ tag }: any) => (
                           <Badge key={tag.id} variant="secondary">
                             {tag.name}
                           </Badge>
