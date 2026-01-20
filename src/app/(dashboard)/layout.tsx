@@ -5,8 +5,6 @@ import { LayoutDashboard, Wallet, Receipt, Tags, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/lib/auth"
 
-import { ModeToggle } from "@/components/theme-toggle"
-
 export default async function DashboardLayout({
   children,
 }: {
@@ -20,43 +18,40 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      <aside className="w-full md:w-64 bg-gray-900 text-white p-6 flex flex-col">
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold">Finance Tracker</h1>
-            <p className="text-sm text-gray-400 mt-1">{session.user?.name}</p>
-            <p className="text-xs text-gray-500">{session.user?.email}</p>
-          </div>
-          <ModeToggle />
+      <aside className="w-full md:w-64 bg-background border-r p-6 flex flex-col">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">Finance Tracker</h1>
+          <p className="text-sm text-muted-foreground mt-1">{session.user?.name}</p>
+          <p className="text-xs text-muted-foreground">{session.user?.email}</p>
         </div>
         
         <nav className="flex-1 space-y-2">
-          <Link href="/" className="flex items-center space-x-2 p-2 hover:bg-gray-800 rounded">
+          <Link href="/" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
           </Link>
-          <Link href="/accounts" className="flex items-center space-x-2 p-2 hover:bg-gray-800 rounded">
+          <Link href="/accounts" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Wallet size={20} />
             <span>Accounts</span>
           </Link>
-          <Link href="/expenditures" className="flex items-center space-x-2 p-2 hover:bg-gray-800 rounded">
+          <Link href="/expenditures" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Receipt size={20} />
             <span>Expenditures</span>
           </Link>
-          <Link href="/tags" className="flex items-center space-x-2 p-2 hover:bg-gray-800 rounded">
+          <Link href="/tags" className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded">
             <Tags size={20} />
             <span>Tags</span>
           </Link>
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-gray-800">
+        <div className="mt-auto pt-6 border-t">
           <form
             action={async () => {
               "use server"
               await signOut()
             }}
           >
-            <Button variant="ghost" className="w-full justify-start p-2 text-red-400 hover:text-red-300 hover:bg-gray-800">
+            <Button variant="ghost" className="w-full justify-start p-2 text-red-500 hover:text-red-400 hover:bg-accent">
               <LogOut size={20} className="mr-2" />
               Logout
             </Button>
@@ -64,7 +59,7 @@ export default async function DashboardLayout({
         </div>
       </aside>
       
-      <main className="flex-1 bg-gray-50 dark:bg-gray-900 p-8 overflow-y-auto">
+      <main className="flex-1 bg-background p-8 overflow-y-auto">
         {children}
       </main>
     </div>
