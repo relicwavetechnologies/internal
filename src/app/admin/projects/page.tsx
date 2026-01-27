@@ -9,7 +9,7 @@ export default async function ProjectsPage() {
   const projects = await getProjects()
 
   return (
-    <div className="h-full overflow-y-auto p-8 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>

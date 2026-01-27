@@ -64,16 +64,13 @@ export default async function DashboardPage() {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5)
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                <p className="text-muted-foreground mt-1">
-                Overview of your finances
-                </p>
-            </div>
-            
-            {/* ... Rest of content ... */}
+    <div className="max-w-7xl space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
+          Overview of your finances
+        </p>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -144,7 +141,6 @@ export default async function DashboardPage() {
           <RecentTransactions data={recentTransactions} />
         </CardContent>
       </Card>
-        </div>
     </div>
   )
 }

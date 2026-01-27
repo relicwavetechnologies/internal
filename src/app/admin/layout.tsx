@@ -33,7 +33,7 @@ export default async function AdminLayout({
         }} 
       />
 
-      <main className="flex-1 overflow-hidden flex flex-col">
+      <main className="flex-1 overflow-y-auto p-6 md:p-8">
          {children}
       </main>
     </div>

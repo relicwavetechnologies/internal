@@ -26,7 +26,7 @@ export default async function ProjectOverviewPage({
 
   if (!project) {
      return (
-        <div className="p-8 space-y-4">
+        <div className="space-y-4">
             <h1 className="text-2xl font-bold text-red-600">Project Not Found (Debug Mode)</h1>
             <p>ID Attempted: <span className="font-mono bg-muted px-2 py-1 rounded">{id}</span></p>
             {loadError && (

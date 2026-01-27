@@ -6,6 +6,7 @@ import { clientSchema, type ClientData } from "@/lib/schemas"
 import { revalidatePath } from "next/cache"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
+import { sendClientWelcomeEmail, sendClientMagicLinkEmail } from "@/lib/email"
 
 export async function createClient(data: ClientData) {
     const session = await auth()
@@ -80,6 +81,40 @@ export async function createClientWithProject(data: any) {
 
             return { client, project }
         })
+
+        // Generate magic link and send welcome email
+        const token = crypto.randomBytes(32).toString('hex')
+        const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+        await db.client.update({
+            where: { id: result.client.id },
+            data: {
+                magicToken: token,
+                tokenExpiry: expiry,
+            },
+        })
+
+        const magicLink = `${process.env.NEXTAUTH_URL}/client/auth/magic?token=${token}`
+
+        // Get company name from session or database
+        const company = await db.company.findUnique({
+            where: { id: session.user.companyId },
+            select: { name: true },
+        })
+
+        // Send welcome email with portal access
+        try {
+            await sendClientWelcomeEmail({
+                clientEmail: result.client.email,
+                clientName: result.client.name,
+                companyName: company?.name || 'Our Company',
+                projectName: result.project.name,
+                magicLink,
+            })
+        } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError)
+            // Don't fail the operation if email fails
+        }
 
         revalidatePath('/admin/clients')
         revalidatePath('/admin/projects')
@@ -199,7 +234,7 @@ export async function generateMagicLink(email: string) {
         const token = crypto.randomBytes(32).toString('hex')
         const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-        await db.client.update({
+        const client = await db.client.update({
             where: { email },
             data: {
                 magicToken: token,
@@ -208,6 +243,18 @@ export async function generateMagicLink(email: string) {
         })
 
         const magicLink = `${process.env.NEXTAUTH_URL}/client/auth/magic?token=${token}`
+
+        // Send magic link email
+        try {
+            await sendClientMagicLinkEmail({
+                clientEmail: client.email,
+                clientName: client.name,
+                magicLink,
+            })
+        } catch (emailError) {
+            console.error('Failed to send magic link email:', emailError)
+            // Don't fail the operation if email fails
+        }
 
         return { success: true, magicLink }
     } catch (error) {

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { TaskPriority, TaskStatus, LogSource } from "@prisma/client"
 
 import { TaskData } from "@/lib/schemas"
+import { sendApprovalRequestEmail, sendTaskAssignmentEmail } from "@/lib/email"
 
 interface CreateTaskData {
   title: string
@@ -129,7 +130,15 @@ export async function createTask(data: CreateTaskData | TaskData) {
           },
           // Also set legacy assigneeId for backward compatibility
           assigneeId: assigneeIds.length > 0 ? assigneeIds[0] : null
-        }
+        },
+        include: {
+          project: true,
+          assignees: {
+            include: {
+              employee: true,
+            },
+          },
+        },
       })
 
       // Auto-log creation
@@ -143,6 +152,25 @@ export async function createTask(data: CreateTaskData | TaskData) {
           date: new Date(),
         }
       })
+
+      // Send assignment emails to all assignees
+      for (const assignee of task.assignees) {
+        if (assignee.employee.email) {
+          try {
+            await sendTaskAssignmentEmail({
+              employeeEmail: assignee.employee.email,
+              employeeName: assignee.employee.name,
+              taskTitle: task.title,
+              taskDescription: task.description,
+              projectName: task.project.name,
+              dueDate: task.dueDate,
+            })
+          } catch (emailError) {
+            console.error(`Failed to send assignment email to ${assignee.employee.email}:`, emailError)
+            // Don't fail the operation if email fails
+          }
+        }
+      }
 
       return task
     })
@@ -178,9 +206,26 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
 
   try {
     const result = await db.$transaction(async (tx) => {
+      // Fetch task with related data before update
+      const taskBefore = await tx.task.findUnique({
+        where: { id },
+        include: {
+          project: true,
+          assignees: {
+            include: {
+              employee: true,
+            },
+          },
+        },
+      })
+
       const task = await tx.task.update({
         where: { id },
-        data: { status }
+        data: {
+          status,
+          // When moving to IN_REVIEW, set approval status to PENDING
+          ...(status === 'IN_REVIEW' && { approvalStatus: 'PENDING' })
+        }
       })
 
       // Auto-log status change
@@ -194,6 +239,29 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
           date: new Date(),
         }
       })
+
+      // Send approval request email when task moves to IN_REVIEW
+      if (status === 'IN_REVIEW' && taskBefore) {
+        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL
+        if (adminEmail) {
+          try {
+            await sendApprovalRequestEmail({
+              approverEmail: adminEmail,
+              approverName: 'Admin',
+              taskTitle: taskBefore.title,
+              taskDescription: taskBefore.description,
+              projectName: taskBefore.project.name,
+              employeeName: session.user.name || 'Unknown',
+              completedAt: new Date(),
+              taskId: task.id,
+            })
+          } catch (emailError) {
+            console.error('Failed to send approval request email:', emailError)
+            // Don't fail the operation if email fails
+          }
+        }
+      }
+
       return task
     })
 
@@ -244,9 +312,35 @@ export async function assignTask(taskId: string, employeeId: string) {
     })
     const task = await db.task.findUnique({
       where: { id: taskId },
-      include: { assignees: { include: { employee: true } } }
+      include: {
+        project: true,
+        assignees: { include: { employee: true } }
+      }
     })
-    revalidatePath(`/admin/projects/${task?.projectId}/tasks`)
+
+    if (!task) {
+      return { success: false, error: 'Task not found' }
+    }
+
+    // Send assignment email to the newly assigned employee
+    const newAssignee = task.assignees.find(a => a.employeeId === employeeId)
+    if (newAssignee?.employee.email) {
+      try {
+        await sendTaskAssignmentEmail({
+          employeeEmail: newAssignee.employee.email,
+          employeeName: newAssignee.employee.name,
+          taskTitle: task.title,
+          taskDescription: task.description,
+          projectName: task.project.name,
+          dueDate: task.dueDate,
+        })
+      } catch (emailError) {
+        console.error('Failed to send assignment email:', emailError)
+        // Don't fail the operation if email fails
+      }
+    }
+
+    revalidatePath(`/admin/projects/${task.projectId}/tasks`)
     return { success: true, task }
   } catch (error) {
     return { success: false, error: 'Failed to assign task' }

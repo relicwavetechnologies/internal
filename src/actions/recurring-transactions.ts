@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { sendRecurringTransactionConfirmation, sendPayslipEmail } from "@/lib/email";
 
 const recurringTransactionSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -251,7 +252,14 @@ export async function processRecurringTransactions() {
         },
         include: {
             account: true,
+            employee: true,
         },
+    });
+
+    // Get company info for emails
+    const company = await db.company.findUnique({
+        where: { id: user.companyId },
+        select: { name: true },
     });
 
     const processed = [];
@@ -321,6 +329,42 @@ export async function processRecurringTransactions() {
                 where: { id: transaction.id },
                 data: { nextRun },
             });
+
+            // Send email notifications
+            if (transaction.employee?.email && transaction.type === 'EXPENSE' && transaction.employeeId) {
+                // This is likely a salary payment - send payslip
+                const period = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+                try {
+                    await sendPayslipEmail({
+                        employeeEmail: transaction.employee.email,
+                        employeeName: transaction.employee.name,
+                        amount: transaction.amount,
+                        period,
+                        payDate: now,
+                        companyName: company?.name || 'Our Company',
+                    });
+                } catch (emailError) {
+                    console.error('Failed to send payslip email:', emailError);
+                }
+            }
+
+            // Send confirmation to admin for all recurring transactions
+            const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+            if (adminEmail) {
+                try {
+                    await sendRecurringTransactionConfirmation({
+                        recipientEmail: adminEmail,
+                        recipientName: 'Admin',
+                        transactionName: transaction.name,
+                        amount: transaction.amount,
+                        frequency: transaction.frequency,
+                        nextRunDate: nextRun,
+                        transactionType: transaction.type,
+                    });
+                } catch (emailError) {
+                    console.error('Failed to send transaction confirmation email:', emailError);
+                }
+            }
 
             processed.push(transaction);
         } catch (error) {
