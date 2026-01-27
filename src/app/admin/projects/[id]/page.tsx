@@ -15,10 +15,39 @@ export default async function ProjectOverviewPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const project = await getProjectById(id)
+  let project = null
+  let loadError = null
+
+  try {
+     project = await getProjectById(id)
+  } catch (err: any) {
+     loadError = err.message || "Unknown error occurred during fetch"
+  }
 
   if (!project) {
-    notFound()
+     return (
+        <div className="p-8 space-y-4">
+            <h1 className="text-2xl font-bold text-red-600">Project Not Found (Debug Mode)</h1>
+            <p>ID Attempted: <span className="font-mono bg-muted px-2 py-1 rounded">{id}</span></p>
+            {loadError && (
+                <div className="bg-red-50 border border-red-200 p-4 rounded text-red-800">
+                    <h3 className="font-bold">Error Details:</h3>
+                    <pre className="text-xs mt-2 overflow-auto">{loadError}</pre>
+                </div>
+            )}
+            <div className="bg-muted p-4 rounded">
+                <h3 className="font-bold">Troubleshooting:</h3>
+                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
+                    <li>Verify the ID exists in the database.</li>
+                    <li>Check if your user belongs to the company owning this project.</li>
+                    <li>If you see this page, the routing IS working, but the data fetch returned null.</li>
+                </ul>
+            </div>
+            <Link href="/admin/projects">
+                <Button variant="outline">Back to Projects</Button>
+            </Link>
+        </div>
+     )
   }
 
   // --- Data Aggregation ---
