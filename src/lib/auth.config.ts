@@ -29,10 +29,10 @@ export const authConfig = {
         if (userType === 'CLIENT') return Response.redirect(new URL('/client', nextUrl))
       }
 
-      // Route based on userType
-      if (isAdminRoute && userType !== 'ADMIN') return false
-      if (isEmployeeRoute && userType !== 'EMPLOYEE') return false
-      if (isClientRoute && userType !== 'CLIENT') return false
+      // Route based on userType - RESTRICTIONS REMOVED AS REQUESTED
+      // if (isAdminRoute && userType !== 'ADMIN') return false
+      // if (isEmployeeRoute && userType !== 'EMPLOYEE') return false
+      // if (isClientRoute && userType !== 'CLIENT') return false
 
       // Handle old /dashboard routes - redirect to /admin
       if (isDashboardRoute && userType === 'ADMIN') {

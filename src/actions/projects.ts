@@ -117,7 +117,7 @@ export async function getProjectById(id: string) {
     return await db.project.findUnique({
       where: {
         id,
-        companyId: session.user.companyId,
+        // companyId: session.user.companyId, // REMOVED AS REQUESTED
       },
       include: {
         client: true,
