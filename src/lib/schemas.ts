@@ -29,6 +29,7 @@ export const employeeSchema = z.object({
   phone: z.string().optional(),
   role: z.string().optional(),
   department: z.string().optional(),
+  githubProfile: z.string().url({ message: "Invalid URL" }).optional().or(z.literal("")),
   salary: z.coerce.number().min(0, { message: "Salary must be positive" }).optional().or(z.literal("")),
   employeeType: z.enum(["EMPLOYEE", "CONTRACTOR", "VENDOR", "FREELANCER"]).default("EMPLOYEE"),
   status: z.enum(["ACTIVE", "INACTIVE", "TERMINATED"]).default("ACTIVE"),

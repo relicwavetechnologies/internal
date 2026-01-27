@@ -55,6 +55,7 @@ export function EmployeeForm({ employee, onSuccess }: EmployeeFormProps) {
       employeeType: employee?.employeeType || "EMPLOYEE",
       status: employee?.status || "ACTIVE",
       hireDate: employee?.hireDate ? new Date(employee.hireDate) : undefined,
+      githubProfile: employee?.githubProfile || "",
       notes: employee?.notes || "",
     },
   })

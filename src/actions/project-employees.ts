@@ -19,6 +19,7 @@ export async function assignEmployee(data: ProjectEmployeeData) {
         })
 
         revalidatePath(`/admin/projects/${data.projectId}`)
+        revalidatePath(`/admin/projects/${data.projectId}/tasks`)
         return { success: true, assignment }
     } catch (error) {
         console.error('Assign employee error:', error)
@@ -43,6 +44,7 @@ export async function removeEmployee(projectId: string, employeeId: string) {
         })
 
         revalidatePath(`/admin/projects/${projectId}`)
+        revalidatePath(`/admin/projects/${projectId}/tasks`)
         return { success: true }
     } catch (error) {
         console.error('Remove employee error:', error)

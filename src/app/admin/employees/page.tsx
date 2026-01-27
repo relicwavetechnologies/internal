@@ -13,6 +13,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { CopyButton } from "@/components/ui/copy-button"
+import { ExternalLink } from "lucide-react"
 
 const statusColors: Record<string, string> = {
   ACTIVE: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
@@ -106,6 +108,7 @@ export default async function EmployeesPage() {
                 <TableHead>Type</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Department</TableHead>
+                <TableHead>GitHub</TableHead>
                 <TableHead>Salary</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Payments</TableHead>
@@ -140,10 +143,23 @@ export default async function EmployeesPage() {
                     <TableCell>{employee.role || "-"}</TableCell>
                     <TableCell>{employee.department || "-"}</TableCell>
                     <TableCell>
-                      {employee.salary
-                        ? `$${employee.salary.toLocaleString()}`
-                        : "-"}
+                      {employee.githubProfile ? (
+                        <div className="flex items-center gap-1">
+                          <a
+                            href={employee.githubProfile}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-500 hover:underline flex items-center gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Profile
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <CopyButton text={employee.githubProfile} />
+                        </div>
+                      ) : "-"}
                     </TableCell>
+                    <TableCell>{employee.department || "-"}</TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"

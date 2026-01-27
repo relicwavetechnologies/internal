@@ -99,6 +99,7 @@ model Employee {
   phone                 String?
   role                  String?
   department            String?
+  githubProfile         String?
   salary                Float?
   employeeType          EmployeeType           @default(EMPLOYEE)
   status                EmployeeStatus         @default(ACTIVE)
@@ -339,11 +340,11 @@ model Task {
   comments  Comment[] // Threaded comments on tasks
 
   // Client Management
-  isClientVisible Boolean       @default(true)
+  isClientVisible Boolean        @default(true)
   approvalStatus  ApprovalStatus @default(NONE)
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   completedAt DateTime?
   documents   Document[]
 }
@@ -441,12 +442,12 @@ model Comment {
   parentId  String? // For threaded replies
   parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies   Comment[] @relation("CommentReplies")
-  
-  taskId    String?
-  task      Task?     @relation(fields: [taskId], references: [id])
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Project Team Assignment with Roles
