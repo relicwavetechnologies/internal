@@ -21,13 +21,6 @@ export async function getProjectTimeline(projectId: string, startDate?: Date, en
             if (endDate) dateFilter.date.lte = endDate
         }
 
-        console.log("Timeline Filter Debug:", {
-            projectId,
-            startDate: startDate?.toISOString(),
-            endDate: endDate?.toISOString(),
-            filterQuery: JSON.stringify(dateFilter)
-        })
-
         const logs = await db.dailyLog.findMany({
             where: dateFilter,
             include: {
@@ -89,5 +82,39 @@ export async function createManualLog(data: { projectId: string, description: st
     } catch (e) {
         console.error("Manual Log Error:", e)
         return { error: "Failed to create log" }
+    }
+}
+
+export async function deleteLog(logId: string) {
+    const session = await auth()
+    if (!session?.user?.id) return { error: "Unauthorized" }
+
+    try {
+        await db.dailyLog.delete({
+            where: { id: logId }
+        })
+        return { success: true }
+    } catch (e) {
+        console.error("Delete Log Error:", e)
+        return { error: "Failed to delete log" }
+    }
+}
+
+export async function updateLog(logId: string, data: { description?: string, hours?: number }) {
+    const session = await auth()
+    if (!session?.user?.id) return { error: "Unauthorized" }
+
+    try {
+        const log = await db.dailyLog.update({
+            where: { id: logId },
+            data: {
+                ...(data.description && { description: data.description }),
+                ...(data.hours !== undefined && { hoursSpent: data.hours })
+            }
+        })
+        return { success: true, log }
+    } catch (e) {
+        console.error("Update Log Error:", e)
+        return { error: "Failed to update log" }
     }
 }

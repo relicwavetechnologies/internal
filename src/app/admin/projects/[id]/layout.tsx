@@ -26,9 +26,9 @@ export default async function ProjectLayout({
     // Full height and width layout for "App-like" feel
     <div className="flex h-full w-full overflow-hidden bg-background">
       <ProjectSidebar projectId={project.id} projectName={project.name} />
-      <main className="flex-1 overflow-y-auto bg-slate-50/50">
+      <main className="flex-1 overflow-y-auto bg-background">
         <div className="h-full w-full p-6">
-            {children}
+          {children}
         </div>
       </main>
     </div>

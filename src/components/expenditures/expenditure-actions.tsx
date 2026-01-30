@@ -13,6 +13,16 @@ import { deleteExpenditure } from "@/actions/expenditures"
 import { toast } from "sonner"
 import { useState } from "react"
 import { ExpenditureDialog } from "./expenditure-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ExpenditureActionsProps {
   transaction: any
@@ -24,22 +34,21 @@ interface ExpenditureActionsProps {
 
 export function ExpenditureActions({ transaction, accounts, tags, employees, categories }: ExpenditureActionsProps) {
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   async function handleDelete() {
-    if (confirm("Are you sure you want to delete this expenditure? Balance will be refunded.")) {
-      const result = await deleteExpenditure(transaction.id)
-      if (result.error) {
-        toast.error(result.error)
-      } else {
-        toast.success("Expenditure deleted")
-      }
+    const result = await deleteExpenditure(transaction.id)
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      toast.success("Expenditure deleted")
     }
   }
 
   return (
     <>
-      <ExpenditureDialog 
-        open={showEditDialog} 
+      <ExpenditureDialog
+        open={showEditDialog}
         onOpenChange={setShowEditDialog}
         id={transaction.id}
         initialData={{
@@ -70,12 +79,29 @@ export function ExpenditureActions({ transaction, accounts, tags, employees, cat
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+          <DropdownMenuItem onSelect={() => setShowDeleteDialog(true)} className="text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this expenditure? Balance will be refunded. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

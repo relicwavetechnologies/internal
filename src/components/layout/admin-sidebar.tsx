@@ -27,12 +27,12 @@ import { cn } from "@/lib/utils"
 // 2. Pass user info as props.
 // 3. Pass signOut action? Or just import it. Use server actions in client components is fine.
 
-export function AdminSidebar({ 
-  user, 
-  onSignOut 
-}: { 
+export function AdminSidebar({
+  user,
+  onSignOut
+}: {
   user: { name?: string | null, email?: string | null },
-  onSignOut: () => Promise<void> 
+  onSignOut: () => Promise<void>
 }) {
   const pathname = usePathname()
 
@@ -51,40 +51,40 @@ export function AdminSidebar({
   // Removed some less critical ones or we need a scrollbar (which is already there).
 
   return (
-    <aside className="w-[90px] border-r border-border flex flex-col shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-full overflow-hidden">
+    <aside className="w-[90px] border-r border-border flex flex-col shrink-0 bg-sidebar h-full overflow-hidden">
       <div className="flex flex-col items-center py-6 gap-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <Link href="/admin" className="flex items-center justify-center mb-2">
-            <div className="relative h-10 w-10">
-              <Image 
-                src="/logo.png" 
-                alt="Relic Wave" 
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
+          <div className="relative h-10 w-10">
+            <Image
+              src="/logo.png"
+              alt="Relic Wave"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
         </Link>
 
         <nav className="flex flex-col gap-4 w-full px-2">
-            {links.map((link) => {
-                const Icon = link.icon
-                const isActive = pathname === link.href || (link.href !== '/admin' && pathname?.startsWith(link.href))
-                return (
-                    <Link 
-                        key={link.href}
-                        href={link.href} 
-                        className={cn(
-                            "flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all duration-200 group border border-transparent",
-                            isActive 
-                                ? "bg-primary/10 text-primary border-primary/10 shadow-sm" 
-                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                        )}
-                    >
-                        <Icon className={cn("h-5 w-5", isActive ? "fill-primary/20" : "")} />
-                        <span className="text-[10px] font-medium text-center leading-none">{link.label}</span>
-                    </Link>
-                )
-            })}
+          {links.map((link) => {
+            const Icon = link.icon
+            const isActive = pathname === link.href || (link.href !== '/admin' && pathname?.startsWith(link.href))
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all duration-200 group border border-transparent",
+                  isActive
+                    ? "bg-primary/10 text-primary border-primary/10 shadow-sm"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
+              >
+                <Icon className={cn("h-5 w-5", isActive ? "fill-primary/20" : "")} />
+                <span className="text-[10px] font-medium text-center leading-none">{link.label}</span>
+              </Link>
+            )
+          })}
         </nav>
       </div>
 

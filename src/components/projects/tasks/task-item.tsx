@@ -13,6 +13,16 @@ import { toast } from "sonner"
 import { Calendar, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { deleteTask } from "@/actions/tasks"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface TaskItemProps {
     task: {
@@ -37,6 +47,7 @@ const PRIORITIES: Record<TaskPriority, string> = {
 export function TaskItem({ task, onClick }: TaskItemProps) {
     const [completed, setCompleted] = useState(task.status === "COMPLETED")
     const [isHovered, setIsHovered] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
     const handleStatusChange = async (checked: boolean) => {
         setCompleted(checked)
@@ -51,17 +62,16 @@ export function TaskItem({ task, onClick }: TaskItemProps) {
         }
     }
 
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.stopPropagation()
-        if (!confirm("Delete this task?")) return
+    const handleDelete = async () => {
         const result = await deleteTask(task.id)
         if (result.success) toast.success("Task deleted")
         else toast.error("Failed to delete")
+        setShowDeleteDialog(false)
     }
 
     return (
         <div
-            className="group flex items-center gap-4 py-3 px-4 bg-card dark:bg-slate-950/50 border border-border/40 rounded-lg hover:border-border/80 hover:shadow-sm transition-all duration-200 cursor-pointer"
+            className="group flex items-center gap-4 py-3 px-4 bg-card border border-border/40 rounded-lg hover:border-border/80 hover:shadow-sm transition-all duration-200 cursor-pointer"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onClick={onClick}
@@ -148,7 +158,10 @@ export function TaskItem({ task, onClick }: TaskItemProps) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={handleDelete}
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        setShowDeleteDialog(true)
+                    }}
                     className={cn(
                         "h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 transition-opacity",
                         isHovered && "opacity-100"
@@ -156,6 +169,25 @@ export function TaskItem({ task, onClick }: TaskItemProps) {
                 >
                     <Trash2 className="h-3.5 w-3.5" />
                 </Button>
+
+                <div onClick={(e) => e.stopPropagation()}>
+                    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Task</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to delete "{task.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
             </div>
         </div>
     )

@@ -13,6 +13,16 @@ import { deleteIncome } from "@/actions/incomes"
 import { toast } from "sonner"
 import { useState } from "react"
 import { IncomeDialog } from "./income-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface IncomeActionsProps {
   transaction: any
@@ -23,22 +33,21 @@ interface IncomeActionsProps {
 
 export function IncomeActions({ transaction, accounts, tags, categories }: IncomeActionsProps) {
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   async function handleDelete() {
-    if (confirm("Are you sure you want to delete this income? Balance will be refunded.")) {
-      const result = await deleteIncome(transaction.id)
-      if (result.error) {
-        toast.error(result.error)
-      } else {
-        toast.success("Income deleted")
-      }
+    const result = await deleteIncome(transaction.id)
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      toast.success("Income deleted")
     }
   }
 
   return (
     <>
-      <IncomeDialog 
-        open={showEditDialog} 
+      <IncomeDialog
+        open={showEditDialog}
         onOpenChange={setShowEditDialog}
         id={transaction.id}
         initialData={{
@@ -67,12 +76,29 @@ export function IncomeActions({ transaction, accounts, tags, categories }: Incom
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+          <DropdownMenuItem onSelect={() => setShowDeleteDialog(true)} className="text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this income? Balance will be refunded. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

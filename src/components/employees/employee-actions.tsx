@@ -15,18 +15,27 @@ import { EmployeeDialog } from "./employee-dialog"
 import { deleteEmployee } from "@/actions/employees"
 import { toast } from "sonner"
 import Link from "next/link"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export function EmployeeActions({ employee }: { employee: any }) {
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   async function handleDelete() {
-    if (confirm("Are you sure you want to delete this employee? Their payment history will be preserved but unlinked.")) {
-      const result = await deleteEmployee(employee.id)
-      if (result.error) {
-        toast.error(result.error)
-      } else {
-        toast.success("Employee deleted")
-      }
+    const result = await deleteEmployee(employee.id)
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      toast.success("Employee deleted")
     }
   }
 
@@ -59,12 +68,29 @@ export function EmployeeActions({ employee }: { employee: any }) {
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+          <DropdownMenuItem onSelect={() => setShowDeleteDialog(true)} className="text-red-600">
             <Trash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this employee? Their payment history will be preserved but unlinked. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

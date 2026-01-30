@@ -19,13 +19,13 @@ import {
 } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { 
-    Plus, 
-    Trash2, 
-    Check, 
-    ChevronsUpDown, 
-    ExternalLink, 
-    UserPlus, 
+import {
+    Plus,
+    Trash2,
+    Check,
+    ChevronsUpDown,
+    ExternalLink,
+    UserPlus,
     Briefcase,
     Calendar,
     AlertCircle
@@ -33,6 +33,16 @@ import {
 import { assignEmployee, removeEmployee } from "@/actions/project-employees"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface TeamListProps {
     projectId: string
@@ -46,6 +56,7 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
     const [loading, setLoading] = useState(false)
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
     const [role, setRole] = useState<"LEAD" | "DEVELOPER" | "REVIEWER" | "DESIGNER" | "QA">("DEVELOPER")
+    const [memberIdToRemove, setMemberIdToRemove] = useState<string | null>(null)
 
     const handleAddMember = async () => {
         if (!selectedEmployeeId) return
@@ -65,26 +76,27 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
         }
     }
 
-    const handleRemoveMember = async (employeeId: string) => {
-        if (!confirm("Are you sure? This will remove the member from the project.")) return
-        const result = await removeEmployee(projectId, employeeId)
+    const handleRemoveMember = async () => {
+        if (!memberIdToRemove) return
+        const result = await removeEmployee(projectId, memberIdToRemove)
         if (result.success) {
             toast.success("Team member removed")
         } else {
             toast.error("Failed to remove member")
         }
+        setMemberIdToRemove(null)
     }
 
     // Combine legacy tasksAssigned and new taskAssignees
     const getEmployeeTasks = (member: any) => {
         const legacyTasks = member.employee.tasksAssigned || []
         const newTasks = member.employee.taskAssignees?.map((ta: any) => ta.task) || []
-        
+
         // Deduplicate by ID
         const taskMap = new Map()
         legacyTasks.forEach((t: any) => taskMap.set(t.id, t))
         newTasks.forEach((t: any) => taskMap.set(t.id, t))
-        
+
         return Array.from(taskMap.values())
     }
 
@@ -92,7 +104,7 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                     {/* Removed Heading as page likely has it, or keep minimal */}
+                    {/* Removed Heading as page likely has it, or keep minimal */}
                 </div>
                 <div className="flex gap-2">
                     {upworkContractUrl && (
@@ -103,7 +115,7 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
                             </a>
                         </Button>
                     )}
-                    
+
                     <Popover open={openAdd} onOpenChange={setOpenAdd}>
                         <PopoverTrigger asChild>
                             <Button className="gap-2">
@@ -115,11 +127,11 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
                             <div className="p-4 space-y-4">
                                 <h4 className="font-medium leading-none">Add Team Member</h4>
                                 <div className="space-y-2">
-                                     <Popover>
+                                    <Popover>
                                         <PopoverTrigger asChild>
                                             <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                {selectedEmployeeId 
-                                                    ? allEmployees.find(e => e.id === selectedEmployeeId)?.name 
+                                                {selectedEmployeeId
+                                                    ? allEmployees.find(e => e.id === selectedEmployeeId)?.name
                                                     : "Select employee..."}
                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                             </Button>
@@ -133,26 +145,26 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
                                                         {allEmployees
                                                             .filter(emp => !projectTeam.find(pt => pt.employeeId === emp.id))
                                                             .map(emp => (
-                                                            <CommandItem
-                                                                key={emp.id}
-                                                                value={emp.name}
-                                                                onSelect={() => setSelectedEmployeeId(emp.id)}
-                                                            >
-                                                                <Check className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    selectedEmployeeId === emp.id ? "opacity-100" : "opacity-0"
-                                                                )} />
-                                                                {emp.name}
-                                                            </CommandItem>
-                                                        ))}
+                                                                <CommandItem
+                                                                    key={emp.id}
+                                                                    value={emp.name}
+                                                                    onSelect={() => setSelectedEmployeeId(emp.id)}
+                                                                >
+                                                                    <Check className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        selectedEmployeeId === emp.id ? "opacity-100" : "opacity-0"
+                                                                    )} />
+                                                                    {emp.name}
+                                                                </CommandItem>
+                                                            ))}
                                                     </CommandGroup>
                                                 </CommandList>
                                             </Command>
                                         </PopoverContent>
-                                     </Popover>
-                                     <Button className="w-full" onClick={handleAddMember} disabled={!selectedEmployeeId || loading}>
+                                    </Popover>
+                                    <Button className="w-full" onClick={handleAddMember} disabled={!selectedEmployeeId || loading}>
                                         {loading ? "Adding..." : "Add to Project"}
-                                     </Button>
+                                    </Button>
                                 </div>
                             </div>
                         </PopoverContent>
@@ -176,11 +188,11 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
                                         <CardDescription className="text-xs">{member.role} • {member.employee.role || 'Employee'}</CardDescription>
                                     </div>
                                 </div>
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
                                     className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => handleRemoveMember(member.employeeId)}
+                                    onClick={() => setMemberIdToRemove(member.employeeId)}
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -200,22 +212,22 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
                                                 <div className={cn(
                                                     "w-1.5 h-1.5 mt-1.5 rounded-full shrink-0",
                                                     task.status === "IN_PROGRESS" ? "bg-blue-500" :
-                                                    task.status === "IN_REVIEW" ? "bg-purple-500" :
-                                                    "bg-slate-300"
+                                                        task.status === "IN_REVIEW" ? "bg-purple-500" :
+                                                            "bg-slate-300"
                                                 )} />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-medium truncate leading-tight">{task.title}</p>
                                                     <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                                                         <span className="uppercase tracking-wider">{task.status.replace("_", " ")}</span>
-                                                         {task.dueDate && (
-                                                             <span className={cn(
-                                                                 "flex items-center gap-0.5",
-                                                                 new Date(task.dueDate) < new Date() ? "text-red-500 font-bold" : ""
-                                                             )}>
-                                                                 <Calendar className="h-3 w-3" />
-                                                                 {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                                             </span>
-                                                         )}
+                                                        <span className="uppercase tracking-wider">{task.status.replace("_", " ")}</span>
+                                                        {task.dueDate && (
+                                                            <span className={cn(
+                                                                "flex items-center gap-0.5",
+                                                                new Date(task.dueDate) < new Date() ? "text-red-500 font-bold" : ""
+                                                            )}>
+                                                                <Calendar className="h-3 w-3" />
+                                                                {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -232,7 +244,7 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
                     )
                 })}
             </div>
-            
+
             {projectTeam.length === 0 && (
                 <div className="text-center py-12 bg-muted/10 border-2 border-dashed rounded-xl">
                     <UserPlus className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
@@ -240,6 +252,23 @@ export function TeamList({ projectId, projectTeam, allEmployees, upworkContractU
                     <p className="text-sm text-muted-foreground/70 mt-1">Add members to start assigning tasks.</p>
                 </div>
             )}
+
+            <AlertDialog open={!!memberIdToRemove} onOpenChange={(open) => !open && setMemberIdToRemove(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will remove the member from the project. Their assigned tasks will remain but will no longer have an assignee.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleRemoveMember} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Remove Member
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
