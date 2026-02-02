@@ -18,11 +18,18 @@ export async function login(data: LoginData) {
   const { email, password } = validatedFields.data
 
   try {
-    await signIn("credentials", {
+    const result = await signIn("credentials", {
       email,
       password,
+      redirect: false,
       redirectTo: "/",
     })
+
+    if (result?.error) {
+      return { error: "Invalid credentials" }
+    }
+
+    return { redirectTo: result?.url ?? "/" }
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

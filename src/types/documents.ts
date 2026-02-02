@@ -1,5 +1,6 @@
-import { Document, User } from "@prisma/client"
+import { Document, User, Employee } from "@prisma/client"
 
 export type ExtendedDocument = Document & {
-    uploadedBy: User
+    uploadedBy: User | null
+    uploadedByEmployee: Employee | null
 }

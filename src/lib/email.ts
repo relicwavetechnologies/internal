@@ -231,6 +231,8 @@ export async function sendApprovalRequestEmail({
   employeeName,
   completedAt,
   taskId,
+  completionProof,
+  completionPrLinks,
 }: {
   approverEmail: string
   approverName: string
@@ -240,6 +242,8 @@ export async function sendApprovalRequestEmail({
   employeeName: string
   completedAt: Date
   taskId: string
+  completionProof?: string | null
+  completionPrLinks?: string | null
 }) {
   const html = `
     <!DOCTYPE html>
@@ -268,6 +272,8 @@ export async function sendApprovalRequestEmail({
             ${taskDescription ? `<p><span class="label">Description:</span> ${taskDescription}</p>` : ''}
             <p><span class="label">Completed by:</span> ${employeeName}</p>
             <p><span class="label">Completed at:</span> ${completedAt.toLocaleString()}</p>
+            ${completionProof ? `<p><span class="label">Proof:</span> ${completionProof}</p>` : ''}
+            ${completionPrLinks ? `<p><span class="label">PR Links:</span><br/>${completionPrLinks.replace(/\n/g, '<br/>')}</p>` : ''}
           </div>
 
           <p>Please review the task and provide your approval or feedback.</p>

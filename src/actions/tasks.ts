@@ -153,27 +153,27 @@ export async function createTask(data: CreateTaskData | TaskData) {
         }
       })
 
-      // Send assignment emails to all assignees
-      for (const assignee of task.assignees) {
-        if (assignee.employee.email) {
-          try {
-            await sendTaskAssignmentEmail({
-              employeeEmail: assignee.employee.email,
-              employeeName: assignee.employee.name,
-              taskTitle: task.title,
-              taskDescription: task.description,
-              projectName: task.project.name,
-              dueDate: task.dueDate,
-            })
-          } catch (emailError) {
-            console.error(`Failed to send assignment email to ${assignee.employee.email}:`, emailError)
-            // Don't fail the operation if email fails
-          }
-        }
-      }
-
       return task
     })
+
+    // Send assignment emails to all assignees (outside transaction)
+    for (const assignee of result.assignees) {
+      if (assignee.employee.email) {
+        try {
+          await sendTaskAssignmentEmail({
+            employeeEmail: assignee.employee.email,
+            employeeName: assignee.employee.name,
+            taskTitle: result.title,
+            taskDescription: result.description,
+            projectName: result.project.name,
+            dueDate: result.dueDate,
+          })
+        } catch (emailError) {
+          console.error(`Failed to send assignment email to ${assignee.employee.email}:`, emailError)
+          // Don't fail the operation if email fails
+        }
+      }
+    }
 
     revalidatePath(`/admin/projects/${data.projectId}`)
     revalidatePath(`/admin/projects/${result.projectId}/tasks`)
@@ -254,6 +254,7 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
               employeeName: session.user.name || 'Unknown',
               completedAt: new Date(),
               taskId: task.id,
+              completionProof: null,
             })
           } catch (emailError) {
             console.error('Failed to send approval request email:', emailError)
@@ -365,4 +366,3 @@ export async function unassignTask(taskId: string, employeeId: string) {
     return { success: false, error: 'Failed to unassign task' }
   }
 }
-

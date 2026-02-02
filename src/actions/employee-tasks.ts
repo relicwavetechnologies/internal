@@ -3,9 +3,9 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
-import { sendTaskCompletionEmail } from "@/lib/email"
+import { sendApprovalRequestEmail } from "@/lib/email"
 
-export async function markTaskComplete(taskId: string) {
+export async function markTaskComplete(taskId: string, completionProof?: string, completionPrLinks?: string) {
   const session = await auth()
   const employeeId = session?.user?.employeeId
 
@@ -26,26 +26,39 @@ export async function markTaskComplete(taskId: string) {
       return { error: 'Not your task' }
     }
 
+    if (task.status === 'COMPLETED' || task.status === 'IN_REVIEW' || task.status === 'CANCELLED') {
+      return { error: 'Task cannot be submitted for review' }
+    }
+
     const updated = await db.task.update({
       where: { id: taskId },
       data: {
-        status: 'COMPLETED',
-        completedAt: new Date(),
+        status: 'IN_REVIEW',
+        approvalStatus: 'PENDING',
+        completionProof: completionProof?.trim() || null,
+        completionPrLinks: completionPrLinks?.trim() || null,
+        completedAt: null,
       },
     })
 
-    // Send completion email to admin
+    // Send approval request email to admin
     if (process.env.ADMIN_NOTIFICATION_EMAIL && task.assignee) {
-      await sendTaskCompletionEmail({
-        adminEmail: process.env.ADMIN_NOTIFICATION_EMAIL,
-        employeeName: task.assignee.name,
+      await sendApprovalRequestEmail({
+        approverEmail: process.env.ADMIN_NOTIFICATION_EMAIL,
+        approverName: 'Admin',
         taskTitle: task.title,
+        taskDescription: task.description,
         projectName: task.project.name,
-        completedAt: updated.completedAt!,
+        employeeName: task.assignee.name,
+        completedAt: new Date(),
+        taskId: task.id,
+        completionProof: completionProof?.trim() || null,
+        completionPrLinks: completionPrLinks?.trim() || null,
       })
     }
 
     revalidatePath('/employee/tasks')
+    revalidatePath(`/admin/projects/${task.projectId}/tasks`)
     return { success: true }
   } catch (error) {
     console.error('Mark task complete error:', error)

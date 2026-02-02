@@ -127,7 +127,7 @@ export async function getProjectById(id: string) {
         },
         documents: {
           where: { taskId: null }, // ISOLATION: Only get project-level docs, not task docs
-          include: { uploadedBy: true },
+          include: { uploadedBy: true, uploadedByEmployee: true },
           orderBy: { createdAt: 'desc' },
         },
         dailyLogs: {

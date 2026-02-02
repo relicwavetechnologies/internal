@@ -45,7 +45,8 @@ export async function getProjectModules(projectId: string) {
                         },
                         documents: {
                             include: {
-                                uploadedBy: true
+                                uploadedBy: true,
+                                uploadedByEmployee: true
                             },
                             orderBy: { createdAt: 'desc' }
                         }

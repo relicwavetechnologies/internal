@@ -39,6 +39,7 @@ async function updateApprovalStatus(id: string, status: ApprovalStatus) {
             where: { id },
             include: {
                 project: true,
+                assignee: true,
                 assignees: {
                     include: {
                         employee: true,
@@ -54,31 +55,46 @@ async function updateApprovalStatus(id: string, status: ApprovalStatus) {
         // Update the task
         const updatedTask = await db.task.update({
             where: { id },
-            data: { approvalStatus: status }
+            data: {
+                approvalStatus: status,
+                status: status === "APPROVED" ? "COMPLETED" : "IN_PROGRESS",
+                completedAt: status === "APPROVED" ? new Date() : null,
+            }
         })
 
-        // Send email notifications to all assignees
+        // Send email notifications to assignees (multi-assignee or fallback to single assignee)
         const approved = status === 'APPROVED'
+        const recipients: { email: string; name: string }[] = []
+
         for (const assignee of task.assignees) {
             if (assignee.employee.email) {
-                try {
-                    await sendApprovalConfirmationEmail({
-                        employeeEmail: assignee.employee.email,
-                        employeeName: assignee.employee.name,
-                        taskTitle: task.title,
-                        projectName: task.project.name,
-                        approverName,
-                        approved,
-                        feedback: null, // TODO: Add feedback field to approval workflow
-                    })
-                } catch (emailError) {
-                    console.error(`Failed to send approval email to ${assignee.employee.email}:`, emailError)
-                    // Don't fail the entire operation if email fails
-                }
+                recipients.push({ email: assignee.employee.email, name: assignee.employee.name })
+            }
+        }
+
+        if (recipients.length === 0 && task.assignee?.email) {
+            recipients.push({ email: task.assignee.email, name: task.assignee.name || 'Employee' })
+        }
+
+        for (const recipient of recipients) {
+            try {
+                await sendApprovalConfirmationEmail({
+                    employeeEmail: recipient.email,
+                    employeeName: recipient.name,
+                    taskTitle: task.title,
+                    projectName: task.project.name,
+                    approverName,
+                    approved,
+                    feedback: null, // TODO: Add feedback field to approval workflow
+                })
+            } catch (emailError) {
+                console.error(`Failed to send approval email to ${recipient.email}:`, emailError)
+                // Don't fail the entire operation if email fails
             }
         }
 
         revalidatePath(`/admin/projects/${task.projectId}/tasks`)
+        revalidatePath(`/employee/tasks`)
         return { success: true, task: updatedTask }
     } catch (error) {
         console.error('Failed to update approval status:', error)

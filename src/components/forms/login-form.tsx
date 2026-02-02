@@ -37,8 +37,8 @@ export function LoginForm() {
       if (result?.error) {
         toast.error(result.error)
       } else {
-        // Successful login will redirect via server action
-        // toast.success("Logged in successfully")
+        const nextUrl = result?.redirectTo ?? "/"
+        router.replace(nextUrl)
       }
     } catch (error) {
       // toast.error("Something went wrong")

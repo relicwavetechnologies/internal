@@ -3,7 +3,6 @@ import type { NextAuthConfig } from "next-auth"
 export const authConfig = {
   pages: {
     signIn: "/login",
-    newUser: "/signup",
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
@@ -14,7 +13,7 @@ export const authConfig = {
       const isEmployeeRoute = nextUrl.pathname.startsWith('/employee')
       const isClientRoute = nextUrl.pathname.startsWith('/client') && !nextUrl.pathname.startsWith('/client/login') && !nextUrl.pathname.startsWith('/client/auth')
       const isDashboardRoute = nextUrl.pathname.startsWith('/dashboard')
-      const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/signup')
+      const isAuthPage = nextUrl.pathname.startsWith('/login')
       const isClientAuthPage = nextUrl.pathname.startsWith('/client/login') || nextUrl.pathname.startsWith('/client/auth')
 
       if (!isLoggedIn) {

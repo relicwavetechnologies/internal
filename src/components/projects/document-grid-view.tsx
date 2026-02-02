@@ -54,6 +54,7 @@ export function DocumentGridView({ documents }: DocumentGridViewProps) {
       {documents.map((doc) => {
         const Icon = DOCUMENT_TYPE_ICONS[doc.type] || DOCUMENT_TYPE_ICONS.OTHER
         const colorClass = DOCUMENT_TYPE_COLORS[doc.type] || DOCUMENT_TYPE_COLORS.OTHER
+        const uploaderName = doc.uploadedBy?.name || doc.uploadedByEmployee?.name || "Unknown"
 
         return (
           <Card key={doc.id} className="group relative flex flex-col transition-all duration-300 border-border/40 hover:border-border/80 hover:shadow-lg hover:-translate-y-1 overflow-hidden bg-card/50 backdrop-blur-sm">
@@ -73,7 +74,7 @@ export function DocumentGridView({ documents }: DocumentGridViewProps) {
               <div className="space-y-2.5 pt-2">
                 <div className="flex items-center gap-2.5 text-xs text-muted-foreground/80">
                   <User className="h-3.5 w-3.5 opacity-70" />
-                  <span>{doc.uploadedBy.name}</span>
+                  <span>{uploaderName}</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-xs text-muted-foreground/80">
                   <Calendar className="h-3.5 w-3.5 opacity-70" />

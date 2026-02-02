@@ -67,13 +67,17 @@ export async function createDocument(data: {
     }
 
     try {
+        const uploaderData = session.user.userType === 'EMPLOYEE'
+            ? { uploadedByEmployeeId: session.user.employeeId || session.user.id }
+            : { uploadedById }
+
         const document = await db.document.create({
             data: {
                 name: data.name,
                 url: data.url,
                 type: data.type,
                 projectId: data.projectId,
-                uploadedById,
+                ...uploaderData,
                 taskId: data.taskId,
             },
         })
@@ -128,13 +132,17 @@ export async function uploadDocument(formData: FormData, projectId: string, task
         if (result.resource_type === 'video') docType = 'VIDEO'
         else if (result.resource_type === 'image' && docType === 'OTHER') docType = 'IMAGE'
 
+        const uploaderData = session.user.userType === 'EMPLOYEE'
+            ? { uploadedByEmployeeId: session.user.employeeId || session.user.id }
+            : { uploadedById: session.user.id! }
+
         const document = await db.document.create({
             data: {
                 name: name,
                 url: result.secure_url,
                 type: docType,
                 projectId,
-                uploadedById: session.user.id!,
+                ...uploaderData,
                 taskId: taskId,
             },
         })
@@ -161,13 +169,17 @@ export async function createLinkDocument(data: { url: string; name: string; proj
         // If it's a link, we can explicitly treat it as LINK unless it matches a specific file type like PDF/Image
         if (type === 'OTHER') type = 'LINK'
 
+        const uploaderData = session.user.userType === 'EMPLOYEE'
+            ? { uploadedByEmployeeId: session.user.employeeId || session.user.id }
+            : { uploadedById: session.user.id! }
+
         const document = await db.document.create({
             data: {
                 name: data.name,
                 url: data.url,
                 type: type,
                 projectId: data.projectId,
-                uploadedById: session.user.id!,
+                ...uploaderData,
                 taskId: data.taskId,
             },
         })
@@ -207,7 +219,7 @@ export async function getTaskDocuments(taskId: string) {
     try {
         const docs = await db.document.findMany({
             where: { taskId },
-            include: { uploadedBy: true },
+            include: { uploadedBy: true, uploadedByEmployee: true },
             orderBy: { createdAt: 'desc' }
         })
         return docs

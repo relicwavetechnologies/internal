@@ -60,6 +60,8 @@ export function DocumentListView({ documents, onDelete }: DocumentListViewProps)
           {documents.map((doc) => {
             const Icon = DOCUMENT_TYPE_ICONS[doc.type] || DOCUMENT_TYPE_ICONS.OTHER
             const colorClass = DOCUMENT_TYPE_COLORS[doc.type] || DOCUMENT_TYPE_COLORS.OTHER
+            const uploaderName = doc.uploadedBy?.name || doc.uploadedByEmployee?.name || "Unknown"
+            const uploaderInitial = uploaderName?.[0] || "U"
 
             return (
               <TableRow key={doc.id} className="hover:bg-muted/50 transition-colors border-b border-border/40 group">
@@ -88,9 +90,9 @@ export function DocumentListView({ documents, onDelete }: DocumentListViewProps)
                 <TableCell className="py-5">
                   <div className="flex items-center gap-2">
                     <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                      {doc.uploadedBy.name?.[0] || "U"}
+                      {uploaderInitial}
                     </div>
-                    <span className="text-sm font-medium text-muted-foreground">{doc.uploadedBy.name}</span>
+                    <span className="text-sm font-medium text-muted-foreground">{uploaderName}</span>
                   </div>
                 </TableCell>
                 <TableCell className="py-5 text-sm font-medium text-muted-foreground/80 font-mono">

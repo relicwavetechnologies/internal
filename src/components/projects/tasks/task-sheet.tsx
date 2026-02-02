@@ -239,8 +239,8 @@ export function TaskSheet({ task, isOpen, onClose, onUpdate, employees = [] }: T
 
                     <Separator />
 
-                    {/* Approval Section - Only for Completed Tasks */}
-                    {task.status === "COMPLETED" && (
+                    {/* Approval Section - Review flow */}
+                    {(task.status === "IN_REVIEW" || task.status === "COMPLETED") && (
                         <section className="p-4 rounded-lg bg-muted/30 border border-border/50 space-y-3">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-medium">Approval Status</h4>
@@ -248,8 +248,22 @@ export function TaskSheet({ task, isOpen, onClose, onUpdate, employees = [] }: T
                                     {task.approvalStatus || "PENDING"}
                                 </Badge>
                             </div>
+                            {(task.completionProof || task.completionPrLinks) && (
+                                <div className="rounded-md border bg-background p-3 text-sm">
+                                    <div className="text-xs font-medium text-muted-foreground mb-1">Employee Proof</div>
+                                    {task.completionProof && (
+                                        <div className="whitespace-pre-wrap">{task.completionProof}</div>
+                                    )}
+                                    {task.completionPrLinks && (
+                                        <div className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
+                                            <span className="font-medium text-foreground">PR links:</span>{" "}
+                                            {task.completionPrLinks}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             {task.approvalStatus !== "APPROVED" && (
-                                <div className="flex gap-2">
+                                <div className="flex flex-col gap-2">
                                     <Button
                                         size="sm"
                                         className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -271,8 +285,8 @@ export function TaskSheet({ task, isOpen, onClose, onUpdate, employees = [] }: T
                                     </Button>
                                     <Button
                                         size="sm"
-                                        variant="outline"
-                                        className="w-full text-destructive hover:bg-destructive/10 border-destructive/20"
+                                        variant="destructive"
+                                        className="w-full"
                                         onClick={async () => {
                                             setLoading(true)
                                             const result = await rejectTask(task.id)
@@ -301,6 +315,20 @@ export function TaskSheet({ task, isOpen, onClose, onUpdate, employees = [] }: T
                         </TabsList>
 
                         <TabsContent value="proof" className="space-y-4">
+                            {(task.completionProof || task.completionPrLinks) && (
+                                <div className="rounded-md border bg-muted/10 p-3 text-sm">
+                                    <div className="text-xs font-medium text-muted-foreground mb-1">Employee Proof</div>
+                                    {task.completionProof && (
+                                        <div className="whitespace-pre-wrap">{task.completionProof}</div>
+                                    )}
+                                    {task.completionPrLinks && (
+                                        <div className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
+                                            <span className="font-medium text-foreground">PR links:</span>{" "}
+                                            {task.completionPrLinks}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             <ProofOfWorkSection
                                 taskId={task.id}
                                 projectId={task.projectId}
