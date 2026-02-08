@@ -8,7 +8,7 @@ import { FinancesTab } from '@/components/projects/finances-tab'
 import { CommentsTab } from '@/components/projects/comments-tab'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
-import { FileText, BarChart3, DollarSign, MessageSquare, TrendingUp } from 'lucide-react'
+import { FileText, BarChart3, DollarSign, MessageSquare, TrendingUp, Workflow } from 'lucide-react'
 import { ProjectStatusBadge } from '@/components/projects/project-status-badge'
 import { db } from '@/lib/db'
 
@@ -58,27 +58,28 @@ export default async function ClientProjectPage({
                     )}
                 </div>
 
-                <Tabs defaultValue={tab || "overview"} className="w-full">
-                    <TabsList className="grid w-full grid-cols-5">
-                        <TabsTrigger value="overview">
-                            <TrendingUp className="h-4 w-4 mr-2" />
-                            Overview
+                <Tabs defaultValue={tab || "progress"} className="w-full">
+                    <TabsList className="grid w-full grid-cols-5 h-auto">
+                        <TabsTrigger value="overview" className="flex-col h-16 gap-1">
+                            <TrendingUp className="h-5 w-5" />
+                            <span className="text-xs">Overview</span>
                         </TabsTrigger>
-                        <TabsTrigger value="documents">
-                            <FileText className="h-4 w-4 mr-2" />
-                            Documents
+                        <TabsTrigger value="progress" className="flex-col h-16 gap-1 relative">
+                            <Workflow className="h-5 w-5" />
+                            <span className="text-xs">Pipeline</span>
+                            <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full animate-pulse"></span>
                         </TabsTrigger>
-                        <TabsTrigger value="progress">
-                            <BarChart3 className="h-4 w-4 mr-2" />
-                            Progress
+                        <TabsTrigger value="documents" className="flex-col h-16 gap-1">
+                            <FileText className="h-5 w-5" />
+                            <span className="text-xs">Documents</span>
                         </TabsTrigger>
-                        <TabsTrigger value="payments">
-                            <DollarSign className="h-4 w-4 mr-2" />
-                            Payments
+                        <TabsTrigger value="payments" className="flex-col h-16 gap-1">
+                            <DollarSign className="h-5 w-5" />
+                            <span className="text-xs">Payments</span>
                         </TabsTrigger>
-                        <TabsTrigger value="comments">
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Comments
+                        <TabsTrigger value="comments" className="flex-col h-16 gap-1">
+                            <MessageSquare className="h-5 w-5" />
+                            <span className="text-xs">Comments</span>
                         </TabsTrigger>
                     </TabsList>
 

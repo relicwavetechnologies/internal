@@ -3,8 +3,70 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Circle, Clock } from "lucide-react"
+import { ClientPipelineView } from './pipeline/client-pipeline-view'
+import { format } from 'date-fns'
 
 export function ProgressTab({ dailyLogs, modules }: any) {
+    // Check if pipeline exists
+    const hasPipelineData = modules.some((m: any) =>
+        m.tasks?.some((t: any) => t.taskGroup)
+    )
+
+    if (hasPipelineData) {
+        return (
+            <div className="space-y-8">
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">Project Progress</h2>
+                    <ClientPipelineView
+                        projectId={modules[0]?.projectId}
+                        phases={modules}
+                    />
+                </div>
+
+                {/* Keep daily activity timeline */}
+                <div>
+                    <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+                    {dailyLogs.length === 0 ? (
+                        <Card className="p-8 text-center text-muted-foreground">
+                            No activity recorded yet
+                        </Card>
+                    ) : (
+                        <div className="space-y-4">
+                            {Object.entries(
+                                dailyLogs.reduce((acc: any, log: any) => {
+                                    const date = format(new Date(log.date), 'MMM dd, yyyy')
+                                    if (!acc[date]) acc[date] = []
+                                    acc[date].push(log)
+                                    return acc
+                                }, {})
+                            ).map(([date, logs]: [string, any]) => (
+                                <Card key={date} className="p-4">
+                                    <div className="font-medium mb-3">{date}</div>
+                                    <div className="space-y-2">
+                                        {logs.map((log: any) => (
+                                            <div key={log.id} className="flex items-start gap-3 text-sm">
+                                                <span className={log.source === 'AUTO_TASK_COMPLETE' ? 'text-green-600' : 'text-blue-600'}>
+                                                    {log.source === 'AUTO_TASK_COMPLETE' ? '🟢' : '🔵'}
+                                                </span>
+                                                <div className="flex-1">
+                                                    <div className="font-medium">{log.employee.name}</div>
+                                                    <div className="text-muted-foreground">{log.description}</div>
+                                                    {log.hoursSpent && (
+                                                        <div className="text-xs text-muted-foreground mt-1">{log.hoursSpent}h</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-6">
             {/* Daily Logs Timeline */}
@@ -18,7 +80,7 @@ export function ProgressTab({ dailyLogs, modules }: any) {
                     <div className="space-y-4">
                         {Object.entries(
                             dailyLogs.reduce((acc: any, log: any) => {
-                                const date = new Date(log.date).toLocaleDateString()
+                                const date = format(new Date(log.date), 'MMM dd, yyyy')
                                 if (!acc[date]) acc[date] = []
                                 acc[date].push(log)
                                 return acc

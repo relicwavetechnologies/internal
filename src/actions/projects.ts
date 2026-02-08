@@ -136,6 +136,48 @@ export async function getProjectById(id: string) {
         },
         modules: {
           include: {
+            tasks: {
+              where: { isClientVisible: true }, // Only show client-visible tasks
+              include: {
+                assignees: {
+                  include: {
+                    employee: true
+                  }
+                },
+                // Fetch children (subtasks) recursively up to 3 levels
+                children: {
+                  where: { isClientVisible: true },
+                  include: {
+                    assignees: {
+                      include: {
+                        employee: true
+                      }
+                    },
+                    children: {
+                      where: { isClientVisible: true },
+                      include: {
+                        assignees: {
+                          include: {
+                            employee: true
+                          }
+                        },
+                        children: {
+                          where: { isClientVisible: true },
+                          include: {
+                            assignees: {
+                              include: {
+                                employee: true
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              orderBy: { createdAt: 'desc' }
+            },
             subModules: {
               include: {
                 tasks: {

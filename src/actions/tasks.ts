@@ -138,6 +138,7 @@ export async function createTask(data: CreateTaskData | TaskData) {
               employee: true,
             },
           },
+          children: true
         },
       })
 
@@ -364,5 +365,86 @@ export async function unassignTask(taskId: string, employeeId: string) {
     return { success: true, task }
   } catch (error) {
     return { success: false, error: 'Failed to unassign task' }
+  }
+}
+
+export async function createSubtask(parentTaskId: string, data: TaskData) {
+  const session = await auth()
+  if (!session?.user?.companyId) return { success: false, error: 'Unauthorized' }
+
+  try {
+    // Check depth limit
+    const parent = await db.task.findUnique({
+      where: { id: parentTaskId },
+      include: {
+        parent: {
+          include: {
+            parent: true
+          }
+        }
+      }
+    })
+
+    if (!parent) {
+      return { success: false, error: "Parent task not found" }
+    }
+
+    // Calculate depth: if parent has parent has parent, we're at depth 3 (max)
+    const depth = parent.parent?.parent ? 3 : parent.parent ? 2 : 1
+    if (depth >= 3) {
+      return { success: false, error: "Maximum subtask depth (3) reached" }
+    }
+
+    // Get employeeId for logging
+    let employeeId = session.user.employeeId
+    if (!employeeId && session.user.email) {
+      const employee = await db.employee.findUnique({ where: { email: session.user.email } })
+      if (employee) employeeId = employee.id
+    }
+    if (!employeeId) {
+      const anyEmployee = await db.employee.findFirst()
+      if (anyEmployee) employeeId = anyEmployee.id
+    }
+
+    const task = await db.task.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        dueDate: data.dueDate,
+        projectId: data.projectId,
+        moduleId: parent.moduleId, // Inherit from parent
+        parentTaskId,
+        taskGroup: parent.taskGroup, // Inherit from parent
+        isClientVisible: parent.isClientVisible, // Inherit from parent
+      },
+      include: {
+        assignees: {
+          include: { employee: true }
+        },
+        children: true
+      }
+    })
+
+    // Auto-log creation if employeeId exists
+    if (employeeId) {
+      await db.dailyLog.create({
+        data: {
+          projectId: data.projectId,
+          employeeId: employeeId,
+          description: `Created subtask: ${data.title}`,
+          taskId: task.id,
+          source: 'SYSTEM',
+          date: new Date(),
+        }
+      })
+    }
+
+    revalidatePath(`/admin/projects/${data.projectId}/tasks`)
+    return { success: true, task }
+  } catch (error) {
+    console.error("Create subtask error:", error)
+    return { success: false, error: 'Failed to create subtask' }
   }
 }
