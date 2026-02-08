@@ -3,7 +3,7 @@
 import { CreateStoryDialog } from "@/components/projects/tasks/create-story-dialog"
 import { StoryGroup } from "@/components/projects/tasks/story-group"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Layers, Network, List } from "lucide-react"
+import { Layers, Network, List, Workflow, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import * as React from "react"
 import { TaskSheet } from "./tasks/task-sheet"
@@ -14,6 +14,8 @@ import { TaskListSkeleton, KanbanSkeleton, GraphSkeleton } from "@/components/pr
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { RefreshCw } from "lucide-react"
+import { PipelineView } from "./pipeline/pipeline-view"
+import { seedPipelinePhases } from "@/actions/pipeline"
 
 interface TasksTabProps {
     projectId: string
@@ -24,7 +26,7 @@ interface TasksTabProps {
 export function TasksTab({ projectId, modules, employees }: TasksTabProps) {
     const router = useRouter()
     const [selectedTask, setSelectedTask] = React.useState<any>(null)
-    const [view, setView] = React.useState<"list" | "graph">("list")
+    const [view, setView] = React.useState<"list" | "pipeline" | "graph">("pipeline")
     const [statusFilter, setStatusFilter] = React.useState<string>("ALL")
     const [assigneeFilter, setAssigneeFilter] = React.useState<string>("ALL")
     const [isRefreshing, setIsRefreshing] = React.useState(false)
@@ -59,6 +61,14 @@ export function TasksTab({ projectId, modules, employees }: TasksTabProps) {
         setAssigneeFilter("ALL")
     }
 
+    const handleSeedPipeline = async () => {
+        const result = await seedPipelinePhases(projectId)
+        if (result.success) {
+            toast.success("Pipeline created successfully")
+            router.refresh()
+        }
+    }
+
     return (
         <div className="space-y-6 flex flex-col h-[calc(100vh-14rem)]">
             <div className="flex flex-col gap-4 pb-4 border-b">
@@ -82,6 +92,15 @@ export function TasksTab({ projectId, modules, employees }: TasksTabProps) {
                                 List
                             </Button>
                             <Button
+                                variant={view === "pipeline" ? "secondary" : "ghost"}
+                                size="sm"
+                                className="h-7 px-3 text-xs"
+                                onClick={() => setView("pipeline")}
+                            >
+                                <Workflow className="mr-2 h-3.5 w-3.5" />
+                                Pipeline
+                            </Button>
+                            <Button
                                 variant={view === "graph" ? "secondary" : "ghost"}
                                 size="sm"
                                 className="h-7 px-3 text-xs"
@@ -91,6 +110,13 @@ export function TasksTab({ projectId, modules, employees }: TasksTabProps) {
                                 Graph
                             </Button>
                         </div>
+
+                        {view === "pipeline" && modules.length === 0 && (
+                            <Button onClick={handleSeedPipeline} variant="outline" size="sm">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Create Pipeline
+                            </Button>
+                        )}
 
                         <Button
                             variant="ghost"
@@ -162,6 +188,12 @@ export function TasksTab({ projectId, modules, employees }: TasksTabProps) {
                     ) : (
                         <GraphSkeleton />
                     )
+                ) : view === "pipeline" ? (
+                    <PipelineView
+                        projectId={projectId}
+                        phases={modules}
+                        employees={employees}
+                    />
                 ) : view === "list" ? (
                     <ScrollArea className="h-full -mx-4 px-4">
                         <div className="space-y-8 pb-10">

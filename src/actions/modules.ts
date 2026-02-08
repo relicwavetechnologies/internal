@@ -49,6 +49,34 @@ export async function getProjectModules(projectId: string) {
                                 uploadedByEmployee: true
                             },
                             orderBy: { createdAt: 'desc' }
+                        },
+                        // Fetch children (subtasks) recursively up to 3 levels
+                        children: {
+                            include: {
+                                assignees: {
+                                    include: {
+                                        employee: true
+                                    }
+                                },
+                                children: {
+                                    include: {
+                                        assignees: {
+                                            include: {
+                                                employee: true
+                                            }
+                                        },
+                                        children: {
+                                            include: {
+                                                assignees: {
+                                                    include: {
+                                                        employee: true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     orderBy: { createdAt: 'desc' }

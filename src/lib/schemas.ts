@@ -98,6 +98,10 @@ export const taskSchema = z.object({
   subModuleId: z.string().optional(),
   estimatedHours: z.coerce.number().min(0).optional(),
   actualHours: z.coerce.number().min(0).optional(),
+  parentTaskId: z.string().optional(),
+  taskGroup: z.string().optional(),
+  taskSubgroup: z.string().optional(),
+  version: z.enum(["NONE", "V0", "V1"]).default("NONE"),
 })
 
 // CRM Schemas

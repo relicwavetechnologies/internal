@@ -313,6 +313,12 @@ enum ApprovalStatus {
   REJECTED
 }
 
+enum TaskVersion {
+  NONE
+  V0
+  V1
+}
+
 model Task {
   id          String       @id @default(cuid())
   title       String
@@ -334,6 +340,14 @@ model Task {
   subModule      SubModule? @relation("SubModuleTasks", fields: [subModuleId], references: [id], onDelete: Cascade)
   estimatedHours Float?
   actualHours    Float?
+
+  // Pipeline features
+  parentTaskId String?
+  parent       Task?        @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  children     Task[]       @relation("TaskHierarchy")
+  taskGroup    String?
+  taskSubgroup String?
+  version      TaskVersion  @default(NONE)
 
   // New multi-assignee relation
   assignees TaskAssignee[]

@@ -35,7 +35,7 @@ export async function ClientLayoutWrapper({
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-background">
-      <aside className="w-full md:w-64 border-r border-border p-6 flex flex-col">
+      <aside className="w-full md:w-64 border-r border-border p-6 flex flex-col z-50 relative bg-background">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl font-bold">
@@ -101,7 +101,11 @@ export async function ClientLayoutWrapper({
               await signOut({ redirectTo: "/client/login" })
             }}
           >
-            <Button variant="ghost" className="w-full justify-start gap-3 px-3 py-2 text-sm font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-md">
+            <Button
+              type="submit"
+              variant="ghost"
+              className="w-full justify-start gap-3 px-3 py-2 text-sm font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-md"
+            >
               <LogOut className="h-4 w-4" />
               Logout
             </Button>

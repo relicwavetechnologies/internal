@@ -22,9 +22,10 @@ interface CreateTaskDialogProps {
   moduleId: string
   employees: { id: string, name: string }[]
   trigger?: React.ReactNode
+  defaultTaskGroup?: string
 }
 
-export function CreateTaskDialog({ projectId, moduleId, employees, trigger }: CreateTaskDialogProps) {
+export function CreateTaskDialog({ projectId, moduleId, employees, trigger, defaultTaskGroup }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [dateOpen, setDateOpen] = useState(false)
@@ -37,6 +38,7 @@ export function CreateTaskDialog({ projectId, moduleId, employees, trigger }: Cr
   const [status, setStatus] = useState<TaskStatus>("TODO")
   const [date, setDate] = useState<Date>()
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([])
+  const [taskGroup, setTaskGroup] = useState(defaultTaskGroup || "")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
